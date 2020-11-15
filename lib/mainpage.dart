@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mandate_storeapp/utils.dart';
 
 class MainPage extends StatefulWidget {
   @override
@@ -6,6 +7,28 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  String storedUsername;
+  String storedPassword;
+  String storedToken;
+
+  final sharedPref = SharedPref();
+
+  Future fetchSharedPref() async {
+    storedToken = await sharedPref.getString('token');
+    storedUsername = await sharedPref.getString('username');
+    storedPassword = await sharedPref.getString('password');
+    await Future.delayed(
+      Duration(seconds: 3),
+    ); // You can remove this, this is just to see the circular indicator
+    return true;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchSharedPref();
+  }
+
   int _selectedItemIndex = 2;
   @override
   Widget build(BuildContext context) {
@@ -19,315 +42,335 @@ class _MainPageState extends State<MainPage> {
           buildNavBarItem(Icons.person, 4),
         ],
       ),
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              Container(
-                height: 300,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      colors: [Color(0XFF00B686), Color(0XFF00838F)]),
-                ),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.only(left: 20, right: 20.0, top: 30),
-                  child: Column(
+      body: FutureBuilder(
+          future: fetchSharedPref(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData && snapshot.data != null) {
+              print('storedToken $storedToken');
+              print('storedUsername $storedUsername');
+              print('storedPassword $storedPassword');
+              return Stack(
+                children: [
+                  Column(
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Icon(
-                            Icons.menu,
-                            color: Colors.white,
-                          ),
-                          Text(
-                            "Available balance",
-                            style: TextStyle(
-                              fontSize: 18.0,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Icon(
-                            Icons.notifications,
-                            color: Colors.white,
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      Row(
-                        children: [
-                          Container(
-                            width: 80.0,
-                            height: 80.0,
-                            decoration: BoxDecoration(
-                              color: Color(0XFF00B686),
-                              boxShadow: [
-                                BoxShadow(
-                                    color: Colors.black.withOpacity(.1),
-                                    blurRadius: 8,
-                                    spreadRadius: 3)
-                              ],
-                              border: Border.all(
-                                width: 1.5,
-                                color: Colors.white,
-                              ),
-                              borderRadius: BorderRadius.circular(40.0),
-                            ),
-                            padding: EdgeInsets.all(5),
-                            child: CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                  "https://images.pexels.com/photos/2167673/pexels-photo-2167673.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260"),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 20,
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      Container(
+                        height: 300,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                              colors: [Color(0XFF00B686), Color(0XFF00838F)]),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              left: 20, right: 20.0, top: 30),
+                          child: Column(
                             children: [
-                              Text(
-                                "Adeshile OLuwaseyi",
-                                style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Icon(
+                                    Icons.menu,
+                                    color: Colors.white,
+                                  ),
+                                  Text(
+                                    "Available balance",
+                                    style: TextStyle(
+                                      fontSize: 18.0,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.notifications,
+                                    color: Colors.white,
+                                  ),
+                                ],
                               ),
                               SizedBox(
-                                height: 10,
+                                height: 20,
                               ),
                               Row(
                                 children: [
-                                  Icon(
-                                    Icons.camera_front,
-                                    color: Colors.white,
+                                  Container(
+                                    width: 80.0,
+                                    height: 80.0,
+                                    decoration: BoxDecoration(
+                                      color: Color(0XFF00B686),
+                                      boxShadow: [
+                                        BoxShadow(
+                                            color: Colors.black.withOpacity(.1),
+                                            blurRadius: 8,
+                                            spreadRadius: 3)
+                                      ],
+                                      border: Border.all(
+                                        width: 1.5,
+                                        color: Colors.white,
+                                      ),
+                                      borderRadius: BorderRadius.circular(40.0),
+                                    ),
+                                    padding: EdgeInsets.all(5),
+                                    child: CircleAvatar(
+                                      backgroundImage: NetworkImage(
+                                          "https://images.pexels.com/photos/2167673/pexels-photo-2167673.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260"),
+                                    ),
                                   ),
                                   SizedBox(
-                                    width: 10,
+                                    width: 20,
                                   ),
-                                  RichText(
-                                    text: TextSpan(
-                                        text: "\$5320",
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Adeshile OLuwaseyi",
                                         style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white),
+                                      ),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      Row(
                                         children: [
-                                          TextSpan(
-                                              text: ".50",
-                                              style: TextStyle(
-                                                  color: Colors.white38))
-                                        ]),
+                                          Icon(
+                                            Icons.camera_front,
+                                            color: Colors.white,
+                                          ),
+                                          SizedBox(
+                                            width: 10,
+                                          ),
+                                          RichText(
+                                            text: TextSpan(
+                                                text: "\$5320",
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                                children: [
+                                                  TextSpan(
+                                                      text: ".50",
+                                                      style: TextStyle(
+                                                          color:
+                                                              Colors.white38))
+                                                ]),
+                                          )
+                                        ],
+                                      )
+                                    ],
                                   )
                                 ],
                               )
                             ],
-                          )
-                        ],
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          color: Colors.grey.shade100,
+                          child: ListView(
+                            padding: EdgeInsets.only(top: 75),
+                            children: [
+                              Text(
+                                "Activity",
+                                style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey),
+                              ),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              Container(
+                                height: 100,
+                                child: ListView(
+                                  scrollDirection: Axis.horizontal,
+                                  children: [
+                                    buildActivityButton(
+                                        Icons.card_membership,
+                                        "My Card",
+                                        Colors.blue.withOpacity(0.2),
+                                        Color(0XFF01579B)),
+                                    buildActivityButton(
+                                        Icons.transfer_within_a_station,
+                                        "Transfer",
+                                        Colors.cyanAccent.withOpacity(0.2),
+                                        Color(0XFF0097A7)),
+                                    buildActivityButton(
+                                        Icons.pie_chart,
+                                        "Statistics",
+                                        Color(0XFFD7CCC8).withOpacity(0.4),
+                                        Color(0XFF9499B7)),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                height: 15,
+                              ),
+                              Text(
+                                "Categories",
+                                style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey),
+                              ),
+                              SizedBox(
+                                height: 20,
+                              ),
+                              buildCategoryCard(
+                                  Icons.fastfood, "Food", 120, 20),
+                              buildCategoryCard(
+                                  Icons.flash_on, "Utilities", 430, 17),
+                              buildCategoryCard(
+                                  Icons.fastfood, "Food", 120, 20),
+                            ],
+                          ),
+                        ),
                       )
                     ],
                   ),
-                ),
-              ),
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  color: Colors.grey.shade100,
-                  child: ListView(
-                    padding: EdgeInsets.only(top: 75),
-                    children: [
-                      Text(
-                        "Activity",
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey),
-                      ),
-                      SizedBox(
-                        height: 5,
-                      ),
-                      Container(
-                        height: 100,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            buildActivityButton(
-                                Icons.card_membership,
-                                "My Card",
-                                Colors.blue.withOpacity(0.2),
-                                Color(0XFF01579B)),
-                            buildActivityButton(
-                                Icons.transfer_within_a_station,
-                                "Transfer",
-                                Colors.cyanAccent.withOpacity(0.2),
-                                Color(0XFF0097A7)),
-                            buildActivityButton(
-                                Icons.pie_chart,
-                                "Statistics",
-                                Color(0XFFD7CCC8).withOpacity(0.4),
-                                Color(0XFF9499B7)),
+                  Positioned(
+                    top: 185,
+                    right: 0,
+                    child: Container(
+                      padding:
+                          EdgeInsets.symmetric(vertical: 10, horizontal: 25),
+                      width: MediaQuery.of(context).size.width * 0.85,
+                      height: 160,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(.05),
+                              blurRadius: 8,
+                              spreadRadius: 3,
+                              offset: Offset(0, 10),
+                            ),
                           ],
-                        ),
-                      ),
-                      SizedBox(
-                        height: 15,
-                      ),
-                      Text(
-                        "Categories",
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey),
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      buildCategoryCard(Icons.fastfood, "Food", 120, 20),
-                      buildCategoryCard(Icons.flash_on, "Utilities", 430, 17),
-                      buildCategoryCard(Icons.fastfood, "Food", 120, 20),
-                    ],
-                  ),
-                ),
-              )
-            ],
-          ),
-          Positioned(
-            top: 185,
-            right: 0,
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 25),
-              width: MediaQuery.of(context).size.width * 0.85,
-              height: 160,
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(.05),
-                      blurRadius: 8,
-                      spreadRadius: 3,
-                      offset: Offset(0, 10),
-                    ),
-                  ],
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(10),
-                    bottomLeft: Radius.circular(50),
-                  )),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(10),
+                            bottomLeft: Radius.circular(50),
+                          )),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                "Income",
-                                style: TextStyle(
-                                    color: Colors.grey,
-                                    fontWeight: FontWeight.bold),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        "Income",
+                                        style: TextStyle(
+                                            color: Colors.grey,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                      Icon(
+                                        Icons.arrow_upward,
+                                        color: Color(0XFF00838F),
+                                      )
+                                    ],
+                                  ),
+                                  Text(
+                                    "\$2 170.90",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18.0,
+                                        color: Colors.black87),
+                                  )
+                                ],
                               ),
-                              SizedBox(
-                                width: 10,
+                              Container(
+                                  width: 1, height: 50, color: Colors.grey),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        "Expenses",
+                                        style: TextStyle(
+                                            color: Colors.grey,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                      Icon(
+                                        Icons.arrow_downward,
+                                        color: Color(0XFF00838F),
+                                      )
+                                    ],
+                                  ),
+                                  Text(
+                                    "\$1 450.10",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18.0,
+                                        color: Colors.black87),
+                                  )
+                                ],
                               ),
-                              Icon(
-                                Icons.arrow_upward,
-                                color: Color(0XFF00838F),
-                              )
                             ],
                           ),
+                          SizedBox(
+                            height: 10,
+                          ),
                           Text(
-                            "\$2 170.90",
+                            "You spent \$ 1,494 this month",
                             style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18.0,
-                                color: Colors.black87),
+                              fontSize: 13,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                          SizedBox(
+                            height: 3,
+                          ),
+                          Text(
+                            "Let's see the cost statistics for this period",
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Container(
+                            height: 1,
+                            width: double.maxFinite,
+                            color: Colors.grey.withOpacity(0.5),
+                          ),
+                          SizedBox(
+                            height: 15,
+                          ),
+                          Container(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              "Tell me more",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0XFF00B686)),
+                            ),
                           )
                         ],
                       ),
-                      Container(width: 1, height: 50, color: Colors.grey),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                "Expenses",
-                                style: TextStyle(
-                                    color: Colors.grey,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              SizedBox(
-                                width: 10,
-                              ),
-                              Icon(
-                                Icons.arrow_downward,
-                                color: Color(0XFF00838F),
-                              )
-                            ],
-                          ),
-                          Text(
-                            "\$1 450.10",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18.0,
-                                color: Colors.black87),
-                          )
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text(
-                    "You spent \$ 1,494 this month",
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                  SizedBox(
-                    height: 3,
-                  ),
-                  Text(
-                    "Let's see the cost statistics for this period",
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Container(
-                    height: 1,
-                    width: double.maxFinite,
-                    color: Colors.grey.withOpacity(0.5),
-                  ),
-                  SizedBox(
-                    height: 15,
-                  ),
-                  Container(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      "Tell me more",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Color(0XFF00B686)),
                     ),
                   )
                 ],
-              ),
-            ),
-          )
-        ],
-      ),
+              );
+            }
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }),
     );
   }
 
