@@ -38,10 +38,12 @@ class _BodyState extends State<Body> {
       ),
       headers: Utils.configHeader(),
     );
-    print(response.body);
+
     var data = json.decode(response.body.toString());
-    sharedPref.setString('token', data['token']);
     if (response.statusCode == 200) {
+      await sharedPref.setString('token', data['token']);
+      await sharedPref.setString('username', controllerUsername.text);
+      await sharedPref.setString('password', controllerPassword.text);
       Fluttertoast.showToast(
           msg: "Login Successful",
           toastLength: Toast.LENGTH_SHORT,
