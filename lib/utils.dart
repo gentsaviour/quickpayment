@@ -8,7 +8,7 @@ class Utils {
       return {
         HttpHeaders.contentTypeHeader: 'application/json',
         HttpHeaders.acceptHeader: 'application/json',
-        HttpHeaders.authorizationHeader: 'Bearer $token',
+        HttpHeaders.authorizationHeader: 'Token $token',
       };
     } else {
       return {

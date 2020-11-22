@@ -41,7 +41,8 @@ class _BodyState extends State<Body> {
 
     var data = json.decode(response.body.toString());
     if (response.statusCode == 200) {
-      await sharedPref.setString('token', data['token']);
+      await sharedPref.setString('token', data['login']['token']);
+      await sharedPref.setString('investorId', data['investor_id'].toString());
       await sharedPref.setString('username', controllerUsername.text);
       await sharedPref.setString('password', controllerPassword.text);
       Fluttertoast.showToast(
