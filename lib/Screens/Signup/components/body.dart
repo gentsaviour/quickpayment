@@ -3,15 +3,17 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:mandate_storeapp/Screens/DataValidation/data_validation_screen.dart';
 import 'package:mandate_storeapp/Screens/Login/login_screen.dart';
-import 'package:mandate_storeapp/Screens/Signup/components/background.dart';
-import 'package:mandate_storeapp/Screens/Signup/components/or_divider.dart';
-import 'package:mandate_storeapp/Screens/Signup/components/social_icon.dart';
+import 'package:mandate_storeapp/Screens/DataValidation/components/background.dart';
+import 'package:mandate_storeapp/Screens/DataValidation/components/or_divider.dart';
+import 'package:mandate_storeapp/Screens/DataValidation/components/social_icon.dart';
 import 'package:mandate_storeapp/components/already_have_an_account_acheck.dart';
 import 'package:mandate_storeapp/components/rounded_button.dart';
 import 'package:mandate_storeapp/components/text_field_container.dart';
 import 'package:mandate_storeapp/constants.dart';
 import 'package:http/http.dart' as http;
+import 'package:mandate_storeapp/utils.dart';
 
 class Body extends StatefulWidget {
   @override
@@ -20,24 +22,68 @@ class Body extends StatefulWidget {
 
 class _BodyState extends State<Body> {
   final controllerFirstName = TextEditingController();
-  final controllerLastName =  TextEditingController();
+  final controllerLastName = TextEditingController();
   final controllerEmail = TextEditingController();
   final controllerUserName = TextEditingController();
   final controllerPassword = TextEditingController();
   final controllerCPassword = TextEditingController();
+final sharedPref = SharedPref();
 
-  Future <String> Register() async{
-final response = await http.post(
-'https://mandatestore.com/api/investorregister',
-body:{
-  "username":controllerUserName.text,
-  "password":controllerPassword.text,
-  "email":controllerEmail.text,
-  "first_name":controllerFirstName.text,
-  "last_name":controllerLastName.text,
-});
-var datauser = json.decode(response.body);
-return datauser;
+  Future<void> Register() async {
+    final url = Uri.http("www.mandatestore.ng", '/api/investorregister/');
+    final response = await http.post(
+      url,
+      body: jsonEncode(
+        {
+          "username": controllerUserName.text,
+          "password": controllerPassword.text,
+          "email": controllerEmail.text,
+          "first_name": controllerFirstName.text,
+          "last_name": controllerLastName.text,
+        },
+      ),
+      headers: Utils.configHeader(),
+    );
+    var datauser = json.decode(response.body.toString());
+    print(datauser);
+    print(response.statusCode);
+    if (response.statusCode == 200) {
+      Fluttertoast.showToast(
+        msg: "Registration Successful",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+
+      controllerFirstName.clear();
+      controllerLastName.clear();
+      controllerEmail.clear();
+      controllerUserName.clear();
+      controllerPassword.clear();
+      controllerCPassword.clear();
+      await sharedPref.setString('token', datauser['token']);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DataValidationScreen(
+            userId: datauser['user']['id'],
+            investorId: datauser['investor_id'],
+          ),
+        ),
+      );
+    } else {
+      Fluttertoast.showToast(
+          msg: "Invalid data supplied",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
   }
 
   @override
@@ -61,7 +107,7 @@ return datauser;
               child: TextField(
                 obscureText: false,
                 cursorColor: kPrimaryColor,
-                controller:controllerFirstName ,
+                controller: controllerFirstName,
                 decoration: InputDecoration(
                   hintText: "FirstName",
                   icon: Icon(
@@ -76,12 +122,11 @@ return datauser;
                 ),
               ),
             ),
-
             TextFieldContainer(
               child: TextField(
                 obscureText: false,
                 cursorColor: kPrimaryColor,
-                controller:controllerLastName,
+                controller: controllerLastName,
                 decoration: InputDecoration(
                   hintText: "LastName",
                   icon: Icon(
@@ -96,12 +141,11 @@ return datauser;
                 ),
               ),
             ),
-
             TextFieldContainer(
               child: TextField(
                 obscureText: false,
                 cursorColor: kPrimaryColor,
-                controller:controllerEmail,
+                controller: controllerEmail,
                 decoration: InputDecoration(
                   hintText: "Email",
                   icon: Icon(
@@ -116,12 +160,11 @@ return datauser;
                 ),
               ),
             ),
-
             TextFieldContainer(
               child: TextField(
                 obscureText: false,
                 cursorColor: kPrimaryColor,
-                controller:controllerUserName ,
+                controller: controllerUserName,
                 decoration: InputDecoration(
                   hintText: "UserName",
                   icon: Icon(
@@ -136,12 +179,11 @@ return datauser;
                 ),
               ),
             ),
-
             TextFieldContainer(
               child: TextField(
                 obscureText: true,
                 cursorColor: kPrimaryColor,
-                controller:controllerPassword ,
+                controller: controllerPassword,
                 decoration: InputDecoration(
                   hintText: "Password",
                   icon: Icon(
@@ -160,7 +202,7 @@ return datauser;
               child: TextField(
                 obscureText: true,
                 cursorColor: kPrimaryColor,
-                controller:controllerCPassword ,
+                controller: controllerCPassword,
                 decoration: InputDecoration(
                   hintText: "Confirm Password",
                   icon: Icon(
@@ -178,7 +220,7 @@ return datauser;
             RoundedButton(
               text: "SIGNUP",
               press: () {
-                if(controllerFirstName.text.isEmpty){
+                if (controllerFirstName.text.isEmpty) {
                   Fluttertoast.showToast(
                       msg: "FullName is Required",
                       toastLength: Toast.LENGTH_SHORT,
@@ -187,7 +229,7 @@ return datauser;
                       backgroundColor: Colors.red,
                       textColor: Colors.white,
                       fontSize: 16.0);
-                }else if(controllerLastName.text.isEmpty){
+                } else if (controllerLastName.text.isEmpty) {
                   Fluttertoast.showToast(
                       msg: "Last Name is Required",
                       toastLength: Toast.LENGTH_SHORT,
@@ -196,7 +238,7 @@ return datauser;
                       backgroundColor: Colors.red,
                       textColor: Colors.white,
                       fontSize: 16.0);
-                }else if(controllerEmail.text.isEmpty){
+                } else if (controllerEmail.text.isEmpty) {
                   Fluttertoast.showToast(
                       msg: "Email Address is Required",
                       toastLength: Toast.LENGTH_SHORT,
@@ -205,7 +247,7 @@ return datauser;
                       backgroundColor: Colors.red,
                       textColor: Colors.white,
                       fontSize: 16.0);
-                }else if (controllerPassword.text.isEmpty){
+                } else if (controllerPassword.text.isEmpty) {
                   Fluttertoast.showToast(
                       msg: "Password is Required",
                       toastLength: Toast.LENGTH_SHORT,
@@ -214,7 +256,7 @@ return datauser;
                       backgroundColor: Colors.red,
                       textColor: Colors.white,
                       fontSize: 16.0);
-                }else if(controllerCPassword.text.isEmpty){
+                } else if (controllerCPassword.text.isEmpty) {
                   Fluttertoast.showToast(
                       msg: "Confirm Password is Required",
                       toastLength: Toast.LENGTH_SHORT,
@@ -223,8 +265,8 @@ return datauser;
                       backgroundColor: Colors.red,
                       textColor: Colors.white,
                       fontSize: 16.0);
-
-                } else if(controllerCPassword.text != controllerPassword.text){
+                } else if (controllerCPassword.text !=
+                    controllerPassword.text) {
                   Fluttertoast.showToast(
                       msg: "Password Not Match",
                       toastLength: Toast.LENGTH_SHORT,
@@ -233,23 +275,8 @@ return datauser;
                       backgroundColor: Colors.red,
                       textColor: Colors.white,
                       fontSize: 16.0);
-                }else{
+                } else {
                   Register();
-                  Fluttertoast.showToast(
-                      msg: "Registration Successful",
-                      toastLength: Toast.LENGTH_SHORT,
-                      gravity: ToastGravity.CENTER,
-                      timeInSecForIosWeb: 1,
-                      backgroundColor: Colors.green,
-                      textColor: Colors.white,
-                      fontSize: 16.0);
-
-                  controllerFirstName.clear();
-                  controllerLastName.clear();
-                  controllerEmail.clear();
-                  controllerUserName.clear();
-                  controllerPassword.clear();
-                  controllerCPassword.clear();
                 }
               },
             ),
@@ -285,9 +312,9 @@ return datauser;
                 ),
               ],
             ),
-
-            SizedBox(height: 50.0,),
-
+            SizedBox(
+              height: 50.0,
+            ),
           ],
         ),
       ),

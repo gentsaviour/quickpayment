@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mandate_storeapp/Screens/AddInvestment/add_investment_screen.dart';
 import 'package:mandate_storeapp/utils.dart';
 
 class MainPage extends StatefulWidget {
@@ -188,18 +189,25 @@ class _MainPageState extends State<MainPage> {
                                   scrollDirection: Axis.horizontal,
                                   children: [
                                     buildActivityButton(
-                                        Icons.card_membership,
-                                        "My Card",
-                                        Colors.blue.withOpacity(0.2),
-                                        Color(0XFF01579B)),
+                                      Icons.card_membership,
+                                      "Quick Payment",
+                                      Colors.blue.withOpacity(0.2),
+                                      Color(0XFF01579B),
+                                      route: () => Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (BuildContext context) =>
+                                              AddInvestmentScreen(),
+                                        ),
+                                      ),
+                                    ),
                                     buildActivityButton(
                                         Icons.transfer_within_a_station,
-                                        "Transfer",
+                                        "Add Shipping Address",
                                         Colors.cyanAccent.withOpacity(0.2),
                                         Color(0XFF0097A7)),
                                     buildActivityButton(
                                         Icons.pie_chart,
-                                        "Statistics",
+                                        "Payment History",
                                         Color(0XFFD7CCC8).withOpacity(0.4),
                                         Color(0XFF9499B7)),
                                   ],
@@ -482,10 +490,12 @@ class _MainPageState extends State<MainPage> {
   }
 
   GestureDetector buildActivityButton(
-      IconData icon, String title, Color backgroundColor, Color iconColor) {
+      IconData icon, String title, Color backgroundColor, Color iconColor,
+      {VoidCallback route}) {
     return GestureDetector(
+      onTap: () => route(),
       // onTap: () => Navigator.of(context).push(
-      //     MaterialPageRoute(builder: (BuildContext context) => TransferPage())),
+      //     MaterialPageRoute(builder: (BuildContext context) => AddInvestmentScreen())),
       child: Container(
         margin: EdgeInsets.all(10),
         height: 90,
