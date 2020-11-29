@@ -1,20 +1,14 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_icons/flutter_icons.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:mandate_storeapp/Screens/InvestmentDetail/investment_detail_screen.dart';
 import 'package:mandate_storeapp/Screens/Signup/components/background.dart';
 import 'package:mandate_storeapp/components/rounded_button.dart';
 import 'package:mandate_storeapp/components/text_field_container.dart';
 import 'package:mandate_storeapp/constants.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
-import 'package:mandate_storeapp/mainpage.dart';
 import 'package:mandate_storeapp/utils.dart';
-import 'package:path/path.dart';
 
 class Body extends StatefulWidget {
   // int userId;
@@ -30,6 +24,14 @@ class _BodyState extends State<Body> {
   final controllerInvestAmount = TextEditingController();
   final controllerAmountAfter = TextEditingController(text: '0.00');
   final controllerNairaRate = TextEditingController();
+
+  final controllerBeneficiary = TextEditingController();
+  final controllerAccount = TextEditingController();
+  final controllerAddress = TextEditingController();
+  int selectedBank;
+  String selectedBankName = '';
+  List<dynamic> banks = [];
+
   int selectedShipping;
   String selectedShippingName = '';
   int selectedProduct;
@@ -48,32 +50,14 @@ class _BodyState extends State<Body> {
     token = await sharedPref.getString('token');
 
     try {
-      final rateResponse = await client.get(
-        Uri.http(BASE_URL, '/api/rate/'),
-        headers: Utils.configHeader(token: token),
-      );
-      final productResponse = await client.get(
-        Uri.http(BASE_URL, '/api/product/'),
-        headers: Utils.configHeader(token: token),
-      );
-      final shippingResponse = await client.get(
-        Uri.http(BASE_URL, '/api/shipping/'),
-        headers: Utils.configHeader(token: token),
-      );
+      final bankResponse = await client.get(Uri.http(BASE_URL, '/api/bank'),
+          headers: Utils.configHeader(token: token));
 
       setState(() {
-        remoteRate = rateResponse.statusCode == 200
-            ? json.decode(rateResponse.body.toString())[0]['rate']
-            : null;
-        print(rateResponse.body.toString());
-        productPayingFor = productResponse.statusCode == 200
-            ? json.decode(productResponse.body.toString())
+        banks = bankResponse.statusCode == 200
+            ? (json.decode(bankResponse.body.toString()) as List)
             : [];
-        print(productResponse.body.toString());
-        shippingDetails = shippingResponse.statusCode == 200
-            ? json.decode(shippingResponse.body.toString())
-            : [];
-        print(shippingResponse.body.toString());
+        print(bankResponse.body.toString());
         showLoading = false;
       });
     } finally {
@@ -89,20 +73,17 @@ class _BodyState extends State<Body> {
 
   final sharedPref = SharedPref();
 
-  Future<void> makePayment(BuildContext context) async {
+  Future<void> addShipping(BuildContext context) async {
     investorId = int.tryParse(await sharedPref.getString('investorId'));
-    final url = Uri.http("www.mandatestore.ng", '/api/addinvestment');
+    final url = Uri.http("www.mandatestore.ng", '/api/shipping/');
     final response = await http.post(
       url,
       body: jsonEncode(
         {
-          "investor": investorId,
-          "rate": remoteRate,
-          "investment": controllerInvestAmount.text,
-          "transferable": controllerAmountAfter.text,
-          "conversion": controllerNairaRate.text,
-          "shipping": selectedShipping,
-          "product": selectedProduct,
+          "address": controllerAddress.text,
+          "beneficiary": controllerBeneficiary.text,
+          "account": controllerAccount.text,
+          "bank": selectedBank,
         },
       ),
       headers: Utils.configHeader(token: token),
@@ -124,11 +105,7 @@ class _BodyState extends State<Body> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => InvestmentDetailScreen(
-            investmentDetail: investmentData,
-            product: selectedProductName,
-            shipping: selectedShippingName,
-          ),
+          builder: (context) => ShippingDetailsScreen(),
         ),
       );
     } else {
@@ -154,43 +131,20 @@ class _BodyState extends State<Body> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   // SizedBox(height: size.height * 0.03),
-                  Icon(Icons.monetization_on, color: Colors.green, size: 96),
+                  Icon(Icons.person_add, color: Colors.green, size: 96),
                   // SvgPicture.asset(
                   //   "assets/icons/signup.svg",
                   //   height: size.height * 0.35,
                   // ),
                   TextFieldContainer(
                     child: TextField(
-                      keyboardType: TextInputType.number,
+                      keyboardType: TextInputType.text,
                       cursorColor: kPrimaryColor,
-                      controller: controllerInvestAmount,
+                      controller: controllerBeneficiary,
                       decoration: InputDecoration(
-                        hintText: "Investment in \$",
+                        hintText: "Beneficiary",
                         icon: Icon(
-                          Icons.attach_money,
-                          color: kPrimaryColor,
-                        ),
-                        border: InputBorder.none,
-                      ),
-                      onChanged: (value) {
-                        final calculate =
-                            double.tryParse(controllerInvestAmount.text) -
-                                (double.tryParse(controllerInvestAmount.text) *
-                                    0.039);
-                        controllerAmountAfter.text = '${calculate ?? 0.00}';
-                        controllerNairaRate.text = '${calculate * remoteRate}';
-                      },
-                    ),
-                  ),
-                  TextFieldContainer(
-                    child: TextField(
-                      readOnly: true,
-                      cursorColor: kPrimaryColor,
-                      controller: controllerAmountAfter,
-                      decoration: InputDecoration(
-                        hintText: "Amount after charges in \$",
-                        icon: Icon(
-                          Icons.money_off,
+                          Icons.person,
                           color: kPrimaryColor,
                         ),
                         border: InputBorder.none,
@@ -199,15 +153,14 @@ class _BodyState extends State<Body> {
                   ),
                   TextFieldContainer(
                     child: TextField(
-                      readOnly: true,
-                      obscureText: false,
                       cursorColor: kPrimaryColor,
-                      controller: controllerNairaRate,
+                      controller: controllerAddress,
+                      maxLines: 4,
                       decoration: InputDecoration(
-                        hintText: "Rate in Naira at $remoteRate",
-                        labelText: "Rate in Naira at $remoteRate",
+                        hintText: "Address",
+                        labelText: "Address",
                         icon: Icon(
-                          Icons.money,
+                          Icons.location_on,
                           color: kPrimaryColor,
                         ),
                         border: InputBorder.none,
@@ -215,69 +168,71 @@ class _BodyState extends State<Body> {
                     ),
                   ),
                   TextFieldContainer(
-                    child: DropdownButtonFormField(
+                    child: TextField(
+                      cursorColor: kPrimaryColor,
+                      controller: controllerAccount,
                       decoration: InputDecoration(
+                        hintText: "Account Number",
                         icon: Icon(
-                          Icons.group_work,
+                          Icons.account_balance_wallet,
                           color: kPrimaryColor,
                         ),
                         border: InputBorder.none,
                       ),
-                      items: shippingDetails
-                          .map(
-                            (data) => DropdownMenuItem(
-                              onTap: () {
-                                selectedShipping = data['id'];
-                                selectedShippingName = data['beneficiary'];
-                              },
-                              child: Text(
-                                  "${data['beneficiary']} - ${data['account']}"),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) {},
                     ),
                   ),
                   TextFieldContainer(
-                    child: DropdownButtonFormField(
+                    child: DropdownButtonFormField<String>(
+                      value: selectedBankName as String,
                       decoration: InputDecoration(
                         icon: Icon(
-                          Icons.ac_unit,
+                          FontAwesome.bank,
                           color: kPrimaryColor,
                         ),
                         border: InputBorder.none,
                       ),
-                      items: productPayingFor
-                          .map(
-                            (data) => DropdownMenuItem(
-                              onTap: () {
-                                selectedProduct = data['id'];
-                                selectedProductName = data['name'];
-                                Scaffold.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      "${data['name']} - ${data['price']}",
-                                    ),
+                      items: [
+                            DropdownMenuItem(
+                              value: '',
+                              child: Text(''),
+                            )
+                          ] +
+                          (banks)
+                              .map(
+                                (data) => DropdownMenuItem<String>(
+                                  value: (data['name'] as String),
+                                  onTap: () {
+                                    selectedBank = data['id'];
+                                    selectedBankName = data['name'];
+                                    Scaffold.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "${data['name']}",
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    "${(data['name'] as String)}",
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                );
-                              },
-                              child: Text(
-                                "${(data['name'] as String).substring(0, 10)} - ${data['price']}",
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) {},
+                                ),
+                              )
+                              .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedBankName = value;
+                        });
+                      },
                     ),
                   ),
                   SizedBox(height: 16.0),
                   RoundedButton(
-                    text: "MAKE PAYMENT",
+                    text: "ADD SHIPPING",
                     press: () {
-                      if (controllerInvestAmount.text.isEmpty) {
+                      if (controllerBeneficiary.text.isEmpty) {
                         Fluttertoast.showToast(
-                          msg: "Amount to be invested is required",
+                          msg: "Beneficiary is required",
                           toastLength: Toast.LENGTH_SHORT,
                           gravity: ToastGravity.CENTER,
                           timeInSecForIosWeb: 1,
@@ -285,9 +240,9 @@ class _BodyState extends State<Body> {
                           textColor: Colors.white,
                           fontSize: 16.0,
                         );
-                      } else if (controllerAmountAfter.text.isEmpty) {
+                      } else if (controllerAddress.text.isEmpty) {
                         Fluttertoast.showToast(
-                          msg: "Amount to be invested is Required",
+                          msg: "Address is required",
                           toastLength: Toast.LENGTH_SHORT,
                           gravity: ToastGravity.CENTER,
                           timeInSecForIosWeb: 1,
@@ -295,9 +250,9 @@ class _BodyState extends State<Body> {
                           textColor: Colors.white,
                           fontSize: 16.0,
                         );
-                      } else if (controllerNairaRate.text.isEmpty) {
+                      } else if (controllerAccount.text.isEmpty) {
                         Fluttertoast.showToast(
-                          msg: "Amount to be invested is Required",
+                          msg: "Account number is required",
                           toastLength: Toast.LENGTH_SHORT,
                           gravity: ToastGravity.CENTER,
                           timeInSecForIosWeb: 1,
@@ -305,19 +260,9 @@ class _BodyState extends State<Body> {
                           textColor: Colors.white,
                           fontSize: 16.0,
                         );
-                      } else if (selectedShippingName.isEmpty) {
+                      } else if (selectedBankName.isEmpty) {
                         Fluttertoast.showToast(
-                          msg: "Shipping Detail is Required",
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.CENTER,
-                          timeInSecForIosWeb: 1,
-                          backgroundColor: Colors.red,
-                          textColor: Colors.white,
-                          fontSize: 16.0,
-                        );
-                      } else if (selectedProductName.isEmpty) {
-                        Fluttertoast.showToast(
-                          msg: "Product to be paid for is Required",
+                          msg: "Bank is Required",
                           toastLength: Toast.LENGTH_SHORT,
                           gravity: ToastGravity.CENTER,
                           timeInSecForIosWeb: 1,
@@ -326,13 +271,85 @@ class _BodyState extends State<Body> {
                           fontSize: 16.0,
                         );
                       } else {
-                        makePayment(context);
+                        addShipping(context);
                       }
                     },
                   ),
                   SizedBox(height: size.height * 0.03),
                 ],
               ),
+            ),
+    );
+  }
+}
+
+class ShippingDetailsScreen extends StatefulWidget {
+  ShippingDetailsScreen({Key key}) : super(key: key);
+
+  @override
+  _ShippingDetailsScreenState createState() => _ShippingDetailsScreenState();
+}
+
+class _ShippingDetailsScreenState extends State<ShippingDetailsScreen> {
+  List<dynamic> shippingDetails = [];
+  final sharedPref = SharedPref();
+
+  bool showLoading = true;
+
+  String token;
+  int investorId;
+
+  fetchNeccessaryData() async {
+    var client = http.Client();
+    token = await sharedPref.getString('token');
+
+    try {
+      final shippingResponse = await client.get(
+        Uri.http(BASE_URL, '/api/shipping/'),
+        headers: Utils.configHeader(token: token),
+      );
+
+      setState(() {
+        shippingDetails = shippingResponse.statusCode == 200
+            ? json.decode(shippingResponse.body.toString())
+            : [];
+        print(shippingResponse.body.toString());
+        showLoading = false;
+      });
+    } finally {
+      client.close();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchNeccessaryData();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Shippings')),
+      body: showLoading
+          ? Center(child: CircularProgressIndicator())
+          : ListView.separated(
+              padding: EdgeInsets.symmetric(vertical: 8.0),
+              separatorBuilder: (context, index) => Divider(),
+              itemCount: shippingDetails.length,
+              itemBuilder: (context, index) {
+                final data = shippingDetails[index];
+                return ListTile(
+                  leading: Icon(Icons.person),
+                  title: Text("${data['beneficiary']} - ${data['account']}"),
+                  subtitle: Wrap(
+                    children: [
+                      Text("${data['bank_obj']['name']} | "),
+                      Text("${data['address']}"),
+                    ],
+                  ),
+                );
+              },
             ),
     );
   }

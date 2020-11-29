@@ -1,6 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:mandate_storeapp/Screens/AddInvestment/add_investment_screen.dart';
+import 'package:mandate_storeapp/Screens/AddShipping/add_shipping_screen.dart';
+import 'package:mandate_storeapp/Screens/AddShipping/components/body.dart';
+import 'package:mandate_storeapp/constants.dart';
 import 'package:mandate_storeapp/utils.dart';
+import 'package:http/http.dart' as http;
 
 class MainPage extends StatefulWidget {
   @override
@@ -12,7 +18,37 @@ class _MainPageState extends State<MainPage> {
   String storedPassword;
   String storedToken;
 
+  List<dynamic> completedTransactions = [];
   final sharedPref = SharedPref();
+
+  bool showLoading = true;
+
+  String token;
+  int investorId;
+
+  fetchNeccessaryData() async {
+    var client = http.Client();
+    token = await sharedPref.getString('token');
+
+    try {
+      final completedTransactionsResponse = await client.get(
+        Uri.http(BASE_URL, '/api/completed/'),
+        headers: Utils.configHeader(token: token),
+      );
+
+      setState(() {
+        completedTransactions = completedTransactionsResponse.statusCode == 200
+            ? json.decode(completedTransactionsResponse.body.toString())
+            : [];
+        print(completedTransactionsResponse.body.toString());
+        showLoading = false;
+      });
+
+      await fetchSharedPref();
+    } finally {
+      client.close();
+    }
+  }
 
   Future fetchSharedPref() async {
     storedToken = await sharedPref.getString('token');
@@ -27,30 +63,25 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-    fetchSharedPref();
+    fetchNeccessaryData();
   }
 
   int _selectedItemIndex = 2;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: Row(
-        children: [
-          buildNavBarItem(Icons.home, 0),
-          buildNavBarItem(Icons.card_giftcard, 1),
-          buildNavBarItem(Icons.camera, 2),
-          buildNavBarItem(Icons.pie_chart, 3),
-          buildNavBarItem(Icons.person, 4),
-        ],
-      ),
-      body: FutureBuilder(
-          future: fetchSharedPref(),
-          builder: (context, snapshot) {
-            if (snapshot.hasData && snapshot.data != null) {
-              print('storedToken $storedToken');
-              print('storedUsername $storedUsername');
-              print('storedPassword $storedPassword');
-              return Stack(
+        bottomNavigationBar: Row(
+          children: [
+            buildNavBarItem(Icons.home, 0),
+            buildNavBarItem(Icons.card_giftcard, 1),
+            buildNavBarItem(Icons.camera, 2),
+            buildNavBarItem(Icons.pie_chart, 3),
+            buildNavBarItem(Icons.person, 4),
+          ],
+        ),
+        body: showLoading
+            ? Center(child: CircularProgressIndicator())
+            : Stack(
                 children: [
                   Column(
                     children: [
@@ -201,15 +232,23 @@ class _MainPageState extends State<MainPage> {
                                       ),
                                     ),
                                     buildActivityButton(
-                                        Icons.transfer_within_a_station,
-                                        "Add Shipping Address",
-                                        Colors.cyanAccent.withOpacity(0.2),
-                                        Color(0XFF0097A7)),
+                                      Icons.transfer_within_a_station,
+                                      "Add Shipping Address",
+                                      Colors.cyanAccent.withOpacity(0.2),
+                                      Color(0XFF0097A7),
+                                      route: () => Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (BuildContext context) =>
+                                              AddShippingScreen(),
+                                        ),
+                                      ),
+                                    ),
                                     buildActivityButton(
-                                        Icons.pie_chart,
-                                        "Payment History",
-                                        Color(0XFFD7CCC8).withOpacity(0.4),
-                                        Color(0XFF9499B7)),
+                                      Icons.pie_chart,
+                                      "Payment History",
+                                      Color(0XFFD7CCC8).withOpacity(0.4),
+                                      Color(0XFF9499B7),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -226,12 +265,20 @@ class _MainPageState extends State<MainPage> {
                               SizedBox(
                                 height: 20,
                               ),
-                              buildCategoryCard(
-                                  Icons.fastfood, "Food", 120, 20),
-                              buildCategoryCard(
-                                  Icons.flash_on, "Utilities", 430, 17),
-                              buildCategoryCard(
-                                  Icons.fastfood, "Food", 120, 20),
+                              ListView.builder(
+                                physics: NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                itemCount: completedTransactions.length,
+                                itemBuilder: (context, index) {
+                                  final data = completedTransactions[index];
+                                  return buildCategoryCard(
+                                    Icons.star,
+                                    "${data['shipping_obj']['beneficiary']}",
+                                    "${data['transferable']}",
+                                    "${data['rate']}",
+                                  );
+                                },
+                              )
                             ],
                           ),
                         ),
@@ -361,11 +408,23 @@ class _MainPageState extends State<MainPage> {
                           ),
                           Container(
                             alignment: Alignment.centerRight,
-                            child: Text(
-                              "Tell me more",
-                              style: TextStyle(
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        ShippingDetailsScreen(),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                "View Shipping Addresses",
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0XFF00B686)),
+                                  color: Color(0XFF00B686),
+                                ),
+                              ),
                             ),
                           )
                         ],
@@ -373,13 +432,7 @@ class _MainPageState extends State<MainPage> {
                     ),
                   )
                 ],
-              );
-            }
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }),
-    );
+              ));
   }
 
   GestureDetector buildNavBarItem(IconData icon, int index) {
@@ -410,7 +463,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   Container buildCategoryCard(
-      IconData icon, String title, int amount, int percentage) {
+      IconData icon, String title, String amount, String percentage) {
     return Container(
       padding: EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -454,7 +507,7 @@ class _MainPageState extends State<MainPage> {
                     width: 10,
                   ),
                   Text(
-                    "($percentage%)",
+                    "(N$percentage)",
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -514,6 +567,7 @@ class _MainPageState extends State<MainPage> {
             ),
             Text(
               title,
+              textAlign: TextAlign.center,
               style:
                   TextStyle(color: Colors.black54, fontWeight: FontWeight.bold),
             )
