@@ -19,6 +19,7 @@ class _MainPageState extends State<MainPage> {
   String storedToken;
 
   List<dynamic> completedTransactions = [];
+  dynamic userDetails;
   final sharedPref = SharedPref();
 
   bool showLoading = true;
@@ -35,12 +36,18 @@ class _MainPageState extends State<MainPage> {
         Uri.http(BASE_URL, '/api/completed/'),
         headers: Utils.configHeader(token: token),
       );
+      final userDetailsResponse = await client.get(
+        Uri.http(BASE_URL, '/api/userdetail'),
+        headers: Utils.configHeader(token: token),
+      );
 
       setState(() {
         completedTransactions = completedTransactionsResponse.statusCode == 200
             ? json.decode(completedTransactionsResponse.body.toString())
             : [];
         print(completedTransactionsResponse.body.toString());
+        print(userDetailsResponse.body.toString());
+        userDetails = json.decode(userDetailsResponse.body.toString());
         showLoading = false;
       });
 
@@ -70,15 +77,15 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        bottomNavigationBar: Row(
-          children: [
-            buildNavBarItem(Icons.home, 0),
-            buildNavBarItem(Icons.card_giftcard, 1),
-            buildNavBarItem(Icons.camera, 2),
-            buildNavBarItem(Icons.pie_chart, 3),
-            buildNavBarItem(Icons.person, 4),
-          ],
-        ),
+        // bottomNavigationBar: Row(
+        //   children: [
+        //     buildNavBarItem(Icons.home, 0),
+        //     buildNavBarItem(Icons.card_giftcard, 1),
+        //     buildNavBarItem(Icons.camera, 2),
+        //     buildNavBarItem(Icons.pie_chart, 3),
+        //     buildNavBarItem(Icons.person, 4),
+        //   ],
+        // ),
         body: showLoading
             ? Center(child: CircularProgressIndicator())
             : Stack(
@@ -143,7 +150,8 @@ class _MainPageState extends State<MainPage> {
                                     padding: EdgeInsets.all(5),
                                     child: CircleAvatar(
                                       backgroundImage: NetworkImage(
-                                          "https://images.pexels.com/photos/2167673/pexels-photo-2167673.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260"),
+                                        "https://www.mandatestore.ng${userDetails['profile']}",
+                                      ),
                                     ),
                                   ),
                                   SizedBox(
@@ -154,11 +162,12 @@ class _MainPageState extends State<MainPage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        "Adeshile OLuwaseyi",
+                                        "${Utils.capitalizeFirstLetter(userDetails['user']['first_name'])} ${Utils.capitalizeFirstLetter(userDetails['user']['last_name'])}",
                                         style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.white),
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
                                       ),
                                       SizedBox(
                                         height: 10,
@@ -166,27 +175,34 @@ class _MainPageState extends State<MainPage> {
                                       Row(
                                         children: [
                                           Icon(
-                                            Icons.camera_front,
+                                            Icons.email_rounded,
                                             color: Colors.white,
                                           ),
                                           SizedBox(
-                                            width: 10,
+                                            width: 4,
                                           ),
-                                          RichText(
-                                            text: TextSpan(
-                                                text: "\$5320",
-                                                style: TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                                children: [
-                                                  TextSpan(
-                                                      text: ".50",
-                                                      style: TextStyle(
-                                                          color:
-                                                              Colors.white38))
-                                                ]),
+                                          Text(
+                                            '${userDetails['user']['email']}',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.white,
+                                            ),
                                           )
+                                          // RichText(
+                                          //   text: TextSpan(
+                                          //       text: "\$5320",
+                                          //       style: TextStyle(
+                                          //         fontSize: 20,
+                                          //         fontWeight: FontWeight.w600,
+                                          //       ),
+                                          //       children: [
+                                          //         TextSpan(
+                                          //             text: ".50",
+                                          //             style: TextStyle(
+                                          //                 color:
+                                          //                     Colors.white38))
+                                          //       ]),
+                                          // )
                                         ],
                                       )
                                     ],
@@ -316,25 +332,14 @@ class _MainPageState extends State<MainPage> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        "Income",
-                                        style: TextStyle(
-                                            color: Colors.grey,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      Icon(
-                                        Icons.arrow_upward,
-                                        color: Color(0XFF00838F),
-                                      )
-                                    ],
+                                  Text(
+                                    "Transfered",
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                   Text(
-                                    "\$2 170.90",
+                                    "\$${userDetails['total_transfered']}",
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18.0,
@@ -347,25 +352,14 @@ class _MainPageState extends State<MainPage> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        "Expenses",
-                                        style: TextStyle(
-                                            color: Colors.grey,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      Icon(
-                                        Icons.arrow_downward,
-                                        color: Color(0XFF00838F),
-                                      )
-                                    ],
+                                  Text(
+                                    "Conversion",
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                   Text(
-                                    "\$1 450.10",
+                                    "N${userDetails['total_conversion']}",
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18.0,

@@ -215,31 +215,41 @@ class _BodyState extends State<Body> {
                     ),
                   ),
                   TextFieldContainer(
-                    child: DropdownButtonFormField(
+                    child: DropdownButtonFormField<String>(
+                      value: selectedShippingName as String,
                       decoration: InputDecoration(
                         icon: Icon(
-                          Icons.group_work,
+                          Icons.person,
                           color: kPrimaryColor,
                         ),
                         border: InputBorder.none,
                       ),
-                      items: shippingDetails
-                          .map(
-                            (data) => DropdownMenuItem(
-                              onTap: () {
-                                selectedShipping = data['id'];
-                                selectedShippingName = data['beneficiary'];
-                              },
-                              child: Text(
-                                  "${data['beneficiary']} - ${data['account']}"),
-                            ),
-                          )
-                          .toList(),
+                      items: [
+                            DropdownMenuItem<String>(
+                              value: '',
+                              child: Text(''),
+                            )
+                          ] +
+                          shippingDetails
+                              .map(
+                                (data) => DropdownMenuItem<String>(
+                                  value:
+                                      "${data['beneficiary']}) ${data['beneficiary']} - ${data['account']}",
+                                  onTap: () {
+                                    selectedShipping = data['id'];
+                                    selectedShippingName = data['beneficiary'];
+                                  },
+                                  child: Text(
+                                      "${data['beneficiary']} - ${data['account']}"),
+                                ),
+                              )
+                              .toList(),
                       onChanged: (value) {},
                     ),
                   ),
                   TextFieldContainer(
-                    child: DropdownButtonFormField(
+                    child: DropdownButtonFormField<String>(
+                      value: selectedProductName as String,
                       decoration: InputDecoration(
                         icon: Icon(
                           Icons.ac_unit,
@@ -247,27 +257,34 @@ class _BodyState extends State<Body> {
                         ),
                         border: InputBorder.none,
                       ),
-                      items: productPayingFor
-                          .map(
-                            (data) => DropdownMenuItem(
-                              onTap: () {
-                                selectedProduct = data['id'];
-                                selectedProductName = data['name'];
-                                Scaffold.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      "${data['name']} - ${data['price']}",
-                                    ),
+                      items: [
+                            DropdownMenuItem(
+                              value: '',
+                              child: Text(''),
+                            )
+                          ] +
+                          productPayingFor
+                              .map(
+                                (data) => DropdownMenuItem<String>(
+                                  value: (data['name'] as String),
+                                  onTap: () {
+                                    selectedProduct = data['id'];
+                                    selectedProductName = data['name'];
+                                    Scaffold.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "${data['name']} - ${data['price']}",
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    "${(data['name'] as String).substring(0, 10)} - ${data['price']}",
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                );
-                              },
-                              child: Text(
-                                "${(data['name'] as String).substring(0, 10)} - ${data['price']}",
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          )
-                          .toList(),
+                                ),
+                              )
+                              .toList(),
                       onChanged: (value) {},
                     ),
                   ),
