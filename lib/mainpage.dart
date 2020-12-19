@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:mandate_storeapp/Screens/AddInvestment/add_investment_screen.dart';
 import 'package:mandate_storeapp/Screens/AddShipping/add_shipping_screen.dart';
 import 'package:mandate_storeapp/Screens/AddShipping/components/body.dart';
+import 'package:mandate_storeapp/Screens/Login/login_screen.dart';
 import 'package:mandate_storeapp/constants.dart';
 import 'package:mandate_storeapp/utils.dart';
 import 'package:http/http.dart' as http;
@@ -100,7 +101,10 @@ class _MainPageState extends State<MainPage> {
                         ),
                         child: Padding(
                           padding: const EdgeInsets.only(
-                              left: 20, right: 20.0, top: 30),
+                            left: 20,
+                            right: 20.0,
+                            top: 30,
+                          ),
                           child: Column(
                             children: [
                               Row(
@@ -119,14 +123,24 @@ class _MainPageState extends State<MainPage> {
                                       color: Colors.white,
                                     ),
                                   ),
-                                  Icon(
-                                    Icons.notifications,
+                                  IconButton(
+                                    onPressed: () => Navigator.of(context)
+                                        .pushAndRemoveUntil(
+                                      // the new route
+                                      MaterialPageRoute(
+                                        builder: (BuildContext context) =>
+                                            LoginScreen(),
+                                      ),
+
+                                      // this function should return true when we're done removing routes
+                                      // but because we want to remove all other screens, we make it
+                                      // always return false
+                                      (Route route) => false,
+                                    ),
+                                    icon: Icon(Icons.exit_to_app),
                                     color: Colors.white,
                                   ),
                                 ],
-                              ),
-                              SizedBox(
-                                height: 20,
                               ),
                               Row(
                                 children: [
@@ -329,43 +343,53 @@ class _MainPageState extends State<MainPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Transfered",
-                                    style: TextStyle(
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Transfered",
+                                      style: TextStyle(
                                         color: Colors.grey,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    "\$${userDetails['total_transfered']}",
-                                    style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 18.0,
-                                        color: Colors.black87),
-                                  )
-                                ],
+                                      ),
+                                    ),
+                                    Text(
+                                      "\$${(userDetails['total_transfered'] as double).toStringAsFixed(2)}",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    )
+                                  ],
+                                ),
                               ),
                               Container(
-                                  width: 1, height: 50, color: Colors.grey),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Conversion",
-                                    style: TextStyle(
+                                width: 1,
+                                height: 50,
+                                margin: EdgeInsets.symmetric(horizontal: 8.0),
+                                color: Colors.grey,
+                              ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Conversion",
+                                      style: TextStyle(
                                         color: Colors.grey,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    "N${userDetails['total_conversion']}",
-                                    style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 18.0,
-                                        color: Colors.black87),
-                                  )
-                                ],
+                                      ),
+                                    ),
+                                    Text(
+                                      "N${(userDetails['total_conversion'] as double).toStringAsFixed(2)}",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    )
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -373,7 +397,7 @@ class _MainPageState extends State<MainPage> {
                             height: 10,
                           ),
                           Text(
-                            "You spent \$ 1,494 this month",
+                            "You spent \$${(userDetails['total_transfered'] as double).toStringAsFixed(2)} so far",
                             style: TextStyle(
                               fontSize: 13,
                               fontStyle: FontStyle.italic,
