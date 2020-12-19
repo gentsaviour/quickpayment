@@ -216,7 +216,8 @@ class _BodyState extends State<Body> {
                   ),
                   TextFieldContainer(
                     child: DropdownButtonFormField<String>(
-                      value: selectedShippingName as String,
+                      isExpanded: true,
+                      value: selectedShippingName ?? '',
                       decoration: InputDecoration(
                         icon: Icon(
                           Icons.person,
@@ -227,7 +228,7 @@ class _BodyState extends State<Body> {
                       items: [
                             DropdownMenuItem<String>(
                               value: '',
-                              child: Text(''),
+                              child: Text('Select Shipping Details'),
                             )
                           ] +
                           shippingDetails
@@ -249,7 +250,8 @@ class _BodyState extends State<Body> {
                   ),
                   TextFieldContainer(
                     child: DropdownButtonFormField<String>(
-                      value: selectedProductName as String,
+                      isExpanded: true,
+                      value: selectedProductName ?? '',
                       decoration: InputDecoration(
                         icon: Icon(
                           Icons.ac_unit,
@@ -260,7 +262,7 @@ class _BodyState extends State<Body> {
                       items: [
                             DropdownMenuItem(
                               value: '',
-                              child: Text(''),
+                              child: Text('Select Product'),
                             )
                           ] +
                           productPayingFor
@@ -279,7 +281,7 @@ class _BodyState extends State<Body> {
                                     );
                                   },
                                   child: Text(
-                                    "${(data['name'] as String).substring(0, 10)} - ${data['price']}",
+                                    "${data['name']} - ${data['price']}",
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),

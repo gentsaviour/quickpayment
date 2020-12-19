@@ -117,9 +117,12 @@ class _BodyState extends State<Body> {
     // Get a reference to RavePayInitializer
     var initializer = RavePayInitializer(
       amount: widget.investmentDetail['investment'],
-      publicKey:
-          kReleaseMode ? '' : 'FLWPUBK_TEST-274c85854362a3e67555aba71efdd19f-X',
-      encryptionKey: kReleaseMode ? '' : 'FLWSECK_TEST96da9a851f9d',
+      publicKey: kReleaseMode
+          ? 'FLWPUBK-c1bccd31678e460df713a77dbd38f013-X'
+          : 'FLWPUBK_TEST-274c85854362a3e67555aba71efdd19f-X',
+      encryptionKey: kReleaseMode
+          ? '188814becafb4815c582189c'
+          : 'FLWSECK_TEST96da9a851f9d',
     )
       ..country = "US"
       ..currency = "USD"
